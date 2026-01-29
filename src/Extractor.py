@@ -24,7 +24,7 @@ class Extractor:
             return soup.find_all(tag, class_=class_name)
         
         return soup.find_all(class_=class_name)
-        
+
     def get_main_page_html(self, url):
         raw_data = self.get_web_page_content(url)
         data = self.beautify_html(raw_data)
@@ -33,13 +33,13 @@ class Extractor:
     def last_page_number(self, s: str):
         matches = re.findall(r'\bPage\s+(\d+)', s)
         return int(matches[-1]) if matches else None
-    
+
     def from_el_to_str(self, elements) -> str:
         combined_html = ""
         for el in elements:
             combined_html += str(el) + "\n"
         return combined_html
-        
+
 
     def extract_page_count(self, html : str) -> int:
         elements = self.find_by_class(html, "pagination-list")
@@ -61,7 +61,7 @@ class Extractor:
             page_urls.append(new_url)
 
         return page_urls
-    
+
     def get_all_pages_data(self):
         urls = self.get_all_pages_urls()
         print(urls)
