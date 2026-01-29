@@ -93,7 +93,6 @@ class Extractor:
         price_value = price_element.text.strip() if price_element else None
         print(price_value)
 
-
     #css-hzlye5
     def get_description(self, post_html : str) -> str:
         desc = str(self.find_by_class(post_html, "css-hzlye5", tag="h4"))
