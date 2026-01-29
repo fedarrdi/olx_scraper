@@ -1,61 +1,36 @@
-from bs4 import BeautifulSoup
-import requests
-import re
-
-def get_web_page_content(url, timeout=10):
-    resp = requests.get(url, timeout=timeout)
-    resp.raise_for_status()  
-    return resp.content
-
-def beautify_html(data : str) -> str:
-    soup = BeautifulSoup(data, "html.parser")
-    return soup.prettify()
-
-def find_by_class(html_data : str, class_name : str, tag=None) -> str:
-    soup = BeautifulSoup(html_data, "html.parser")
-
-    if tag:
-        return soup.find_all(tag, class_=class_name)
-    
-    return soup.find_all(class_=class_name)
-    
-def get_main_page_html(url : str):
-    raw_data = get_web_page_content(url)
-    data = beautify_html(raw_data)
-    return data
-
-def last_page_number(s: str):
-    matches = re.findall(r'\bPage\s+(\d+)', s)
-    return int(matches[-1]) if matches else None
-
-def extract_page_count(html : str) -> int:
-    elements = find_by_class(html, "pagination-list")
-
-    if not elements:
-        print(f"No elements with class pagination-list found.")
-        return
-    
-    combined_html = ""
-    for el in elements:
-        combined_html += str(el) + "\n"
-
-    return last_page_number(combined_html)
+from extractor import Extractor
 
 
-def get_all_pages_urls(url, page_count):
-    page_urls = []
-    for i in range(1, page_count + 1):
-        new_url = url + "?page=" + str(i)
-        page_urls.append(new_url)
+if __name__ == "__main__":
+    print("=" * 60)
+    print("     WELCOME TO OLX.BG CAR SCRAPER")
+    print("=" * 60)
+    print()
+    print("This tool scrapes car listings from OLX.bg.")
+    print("It extracts:")
+    print("   • Price")
+    print("   • Title (cleaned – no extra newlines)")
+    print("   • Direct link to each ad")
+    print()
+    print("Features:")
+    print("   • Skips ads without a price")
+    print("   • Saves everything to a timestamped CSV file")
+    print("   • Polite delay (10 seconds between pages)")
+    print()
+    print("Example URL for Volkswagen cars:")
+    print("https://www.olx.bg/avtomobili-karavani-lodki/avtomobili-dzhipove/volkswagen/q-автомобили/")
+    print("-" * 60)
+    print()
 
-    return page_urls
+    user_url = input("Paste your OLX.bg search URL here (or press Enter to use the Volkswagen example): ").strip()
 
-def main():
-    url = "https://www.olx.bg/ads/q-%D0%B2%D0%BE%D0%BB%D0%B0%D0%BD/"
+    if not user_url:
+        user_url = "https://www.olx.bg/avtomobili-karavani-lodki/avtomobili-dzhipove/volkswagen/q-%D0%B0%D0%B2%D1%82%D0%BE%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%B8/"
+        print(f"Using default example URL: {user_url}")
+    else:
+        print(f"Using your URL: {user_url}")
 
-    html_data = get_main_page_html(url)
-    page_count = extract_page_count(html_data)
-    urls = get_all_pages_urls(url, page_count)   
-    print(urls)
+    print("\nStarting scraping... (this may take a while depending on the number of pages)\n")
 
-main()
+    extr = Extractor(user_url)
+    extr.get_all_pages_data()
