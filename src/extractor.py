@@ -78,12 +78,7 @@ class Extractor:
         if not el:
             return "N/A"
         return " ".join(el.get_text(strip=True).split())
-        
-        # Use space as separator and collapse multiple spaces/newlines
-        raw_text = title_el.get_text(separator=" ", strip=True)
-        clean_text = re.sub(r'\s+', ' ', raw_text).strip()
-        return clean_text
-
+     
     def get_ad_url(self, ad_soup: BeautifulSoup) -> str:
         """Extract the full URL to the individual ad page."""
         # Primary: look for <a> with href matching OLX ad pattern (/d/ad/ or /d/oferta/)

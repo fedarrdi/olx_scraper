@@ -57,6 +57,8 @@ class ClassTracker:
         if not self.tracked:
             return all_data
 
+        timestamp = datetime.datetime.now().isoformat()
+
         async with aiohttp.ClientSession() as session:
             fetch_coroutines = [self.fetch(session, url, timeout) for url in self.tracked]
             html_pages = await asyncio.gather(*fetch_coroutines)
@@ -64,10 +66,38 @@ class ClassTracker:
             for url, html in zip(self.tracked.keys(), html_pages):
                 if html is not None:
                     all_data[url] = self.extract_from_html(url, html)
+                    #self.save_fetched_html(url, html, timestamp)
                 else:
                     all_data[url] = None  # Неуспешно извличане
 
         return all_data
+
+    def save_fetched_html(self, url: str, html: str, timestamp: str):
+        import os
+
+        # Създаваме безопасно име от URL (премахваме протокол и опасни символи)
+        safe_url = url.removeprefix("https://").removeprefix("http://")
+        for invalid in r'\/:*?"<>|':
+            safe_url = safe_url.replace(invalid, "_")
+        safe_url = safe_url[:150]
+        if not safe_url:
+            safe_url = "unknown_url"
+
+        # Безопасно име за timestamp (заменяме : и . с _)
+        timestamp_safe = timestamp.replace(":", "_").replace(".", "_")
+
+        filename = f"{safe_url}_{timestamp_safe}.html"
+        folder = "saved_htmls"
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, filename)
+
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(html)
+            print(f"[DEBUG] Запазен HTML за {url} в {path}")
+        except Exception as e:
+            print(f"[ERROR] Неуспешно запазване на HTML за {url}: {e}")
+
 
     def save_to_json(self, data: dict, filename: str):
         with open(filename, "w", encoding="utf-8") as f:
