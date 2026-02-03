@@ -1,6 +1,6 @@
-# OLX.bg Car Scraper
+# OLX.bg Web Element Tracker
 
-A Python web scraper that extracts car listings from OLX.bg, collecting price, title, and direct links, then saving results to a timestamped CSV file.
+A GUI application for tracking and extracting web elements from any website using CSS selectors, with async fetching, periodic extraction, and JSON/CSV export.
 
 ## Installation
 
@@ -19,10 +19,10 @@ pip install -r requirements.txt
 
 ### Requirements
 
-- Python 3.7+
-- `requests` -- HTTP requests
-- `beautifulsoup4` -- HTML parsing
-- `pytest` -- testing
+- Python 3.10+
+- `aiohttp` -- async HTTP requests
+- `beautifulsoup4` / `lxml` -- HTML parsing
+- `tkinter` -- GUI (included with Python)
 
 ## Usage
 
@@ -31,42 +31,60 @@ cd src
 python main.py
 ```
 
-You will be prompted to enter an OLX.bg search URL. Press Enter to use the default example URL. The scraper will process all pages automatically with a 10-second delay between requests and save the output to a CSV file in the current directory.
+The GUI has three tabs:
 
-### Output
+- **Проследявани** -- add URLs and CSS selectors, manage tracked elements, run one-time or periodic extraction
+- **Данни** -- view extracted data, save to JSON/CSV, load from JSON
+- **Лог** -- activity log
 
-CSV files are saved as `olx_extract_YYYY-MM-DD_HH-MM-SS.csv` with the following columns:
+## Project Structure
 
-| Column | Description |
-|--------|-------------|
-| Price | Listing price |
-| Product/Title | Cleaned ad title |
-| Ad_URL | Direct link to the ad |
-| Source_URL | Original search URL |
-| Extracted_At | Extraction timestamp |
-
-## Scripts
+```
+src/
+├── main.py          # Entry point -- launches the app
+├── tracker.py       # ClassTracker -- async fetching, HTML extraction, data export
+├── app.py           # App -- tkinter GUI
+└── test_tracker.py  # Pytest suite for ClassTracker
+```
 
 ### `main.py`
 
-Entry point. Displays a welcome banner, prompts the user for an OLX.bg search URL, and runs the scraper.
+Entry point. Imports and runs the `App`.
 
-### `extractor.py`
+### `tracker.py`
 
-Core scraping module containing the `Extractor` class. Handles:
+Core tracking logic (`ClassTracker` class):
 
-- Fetching and parsing HTML pages
-- Detecting pagination and building page URLs
-- Extracting price, title, and ad URL from each listing
-- Skipping ads with missing price or title
-- Saving collected data to CSV
+- Manage URL + CSS selector pairs
+- Async fetch pages with `aiohttp`
+- Extract text from matched elements
+- Save/load data as JSON or CSV
 
-### `test_extractor.py`
+### `app.py`
 
-Unit tests for the `Extractor` class using pytest. Covers price extraction, title cleaning, URL fallback logic, ad skipping, and CSV output.
+GUI application (`App` class):
+
+- Add/remove tracked URLs and selectors
+- Manual and periodic extraction with configurable interval
+- View, export, and import collected data
+
+### `test_tracker.py`
+
+Pytest test suite for `ClassTracker`. Covers:
+
+- `add()` -- adding URLs/selectors, duplicate handling
+- `remove_url()` / `remove_selector()` -- removal and cleanup of empty entries
+- `extract_from_html()` -- CSS selector matching, multiple matches, whitespace stripping
+- `extract_all_async()` -- async extraction with no tracked URLs
+- `save_to_json()` / `load_from_json()` -- JSON round-trip serialization
+- `save_to_csv()` -- CSV export with correct headers and `None` handling
+- `save_fetched_html()` -- saving raw HTML to disk
+
+## Testing
 
 ```bash
-# Run tests
 cd src
-pytest test_extractor.py -v
+pytest test_tracker.py -v
 ```
+
+Requires `pytest` (`pip install pytest`).
