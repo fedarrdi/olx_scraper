@@ -67,16 +67,17 @@ class Extractor:
         page_count = self.extract_page_count(html_data)
         return [f"{self.url}?page={i}" for i in range(1, page_count + 1)]
 
-    def get_price(self, ad_soup: BeautifulSoup) -> str:
-        """Extract price using direct soup search."""
-        price_el = ad_soup.find("p", {"data-testid": "ad-price"})
-        return price_el.get_text(strip=True) if price_el else "N/A"
 
-    def get_product(self, ad_soup: BeautifulSoup) -> str:
-        """Extract title/product name. All newlines are replaced with single spaces."""
-        title_el = ad_soup.find(["h4", "h6"], class_=re.compile(r"css-"))  # flexible class match
-        if not title_el:
+    def get_price(self, soup: BeautifulSoup) -> str:
+        el = soup.select_one('p[data-testid="ad-price"]')
+        return el.get_text(strip=True) if el else "N/A"
+
+
+    def get_product(self, soup: BeautifulSoup) -> str:
+        el = soup.select_one('h4[class^="css-"], h6[class^="css-"]')
+        if not el:
             return "N/A"
+        return " ".join(el.get_text(strip=True).split())
         
         # Use space as separator and collapse multiple spaces/newlines
         raw_text = title_el.get_text(separator=" ", strip=True)
